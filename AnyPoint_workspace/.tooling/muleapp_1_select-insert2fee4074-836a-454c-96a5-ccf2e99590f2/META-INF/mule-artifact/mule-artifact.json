@@ -1,0 +1,26 @@
+{
+  "configs": [
+    "muleapp_1_select-insert.xml"
+  ],
+  "secureProperties": [],
+  "supportedJavaVersions": [],
+  "redeploymentEnabled": true,
+  "name": "com.mycompany:muleapp_1_select-insert:1.0.0-SNAPSHOT",
+  "minMuleVersion": "4.9.0",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedPackages": [],
+      "exportedResources": [
+        "application-types.xml",
+        "log4j2.xml",
+        "muleapp_1_select-insert.xml"
+      ]
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:logger="http://www.mulesoft.org/schema/mule/logger"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:core="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+          http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+          http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+          http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+          http://www.mulesoft.org/schema/mule/logger http://www.mulesoft.org/schema/mule/logger/current/mule-logger.xsd
+          http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+
+  <http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config">
+    <http:listener-connection host="0.0.0.0" port="8080" />
+  </http:listener-config>
+
+  <!-- 🧮 Configuración de la Base de Datos Oracle -->
+  <db:config name="Database_Config" doc:name="Database Config">
+    <db:oracle-connection host="localhost" port="1521" user="mule" password="root" instance="XE" />
+  </db:config>
+
+  <!-- 🔍 Flow 1: SELECT empleados -->
+  <flow name="consultaFlow">
+    <http:listener doc:name="Listener" path="/select" config-ref="HTTP_Listener_config" />
+    <db:select doc:name="Select" config-ref="Database_Config">
+      <db:sql>SELECT * FROM empleados</db:sql>
+    </db:select>
+    <ee:transform doc:name="Transformar a JSON">
+      <ee:message>
+        <ee:set-payload><![CDATA[%dw 2.0
+          output application/json
+          ---
+          payload
+        ]]></ee:set-payload>
+      </ee:message>
+    </ee:transform>
+    <logger level="INFO" doc:name="Logger - Resultado Select" message="#[payload]" />
+  </flow>
+
+  <!-- ✏️ Flow 2: INSERT empleado -->
+  <flow name="insertarFlow">
+    <http:listener doc:name="Listener Insertar" path="/insertar" config-ref="HTTP_Listener_config" />
+    
+    <!-- Transformar el cuerpo JSON en objeto Java -->
+    <ee:transform doc:name="Transformar entrada a objeto">
+      <ee:message>
+        <ee:set-payload><![CDATA[%dw 2.0
+          output application/java
+          ---
+          read(payload, "application/json")
+        ]]></ee:set-payload>
+      </ee:message>
+    </ee:transform>
+    
+    <db:insert doc:name="Insert Empleado" config-ref="Database_Config">
+      <db:sql><![CDATA[
+        INSERT INTO empleados (nombre, puesto, salario)
+        VALUES (:nombre, :puesto, :salario)
+      ]]></db:sql>
+      <db:input-parameters><![CDATA[
+        #[{ 
+          nombre: payload.nombre, 
+          puesto: payload.puesto, 
+          salario: payload.salario 
+        }]
+      ]]></db:input-parameters>
+    </db:insert>
+    
+    <logger level="INFO" doc:name="Logger - Insert completado" message="Empleado generado correctamente." />
+  </flow>
+
+</mule>

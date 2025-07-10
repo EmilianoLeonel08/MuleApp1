@@ -3,7 +3,7 @@ import json
 import time
 import datetime
 
-url = "https://webhook.site/97fe5127-0ca1-4981-8c18-77256d8c9c03"
+url = "https://webhook.site/2ff4fa32-61bf-41e9-a7d6-abf6232b9008"
 headers = {
     "Content-Type": "application/json"
 }
